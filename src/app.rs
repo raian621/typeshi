@@ -1,11 +1,14 @@
+use crate::core::engine::Engine;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     self,
     buffer::Buffer,
     layout::Rect,
-    text::Line,
-    widgets::{Paragraph, Widget},
+    symbols::border,
+    text::{Line, Text},
+    widgets::{Block, Paragraph, Widget},
 };
+
 use std::io;
 
 pub fn run_app() -> io::Result<()> {
@@ -15,6 +18,7 @@ pub fn run_app() -> io::Result<()> {
 #[derive(Debug, Default)]
 pub struct App {
     should_exit: bool,
+    engine: Engine,
 }
 
 impl App {
@@ -45,7 +49,9 @@ impl App {
             KeyCode::Char('q') if event.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.should_exit = true;
             }
-            KeyCode::Char(_) => {}
+            KeyCode::Char(c) => self.engine.push_char(c),
+            KeyCode::Enter => self.engine.push_char('\n'),
+            KeyCode::Backspace => self.engine.pop_char(),
             _ => {}
         }
     }
@@ -54,7 +60,18 @@ impl App {
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let instructions = Line::from("Press Ctrl + Q to exit");
-        Paragraph::new(instructions)
+        let token_diff = self.engine.token_diff();
+        let body_text = Text::from(
+            token_diff
+                .split("\n")
+                .map(Line::from)
+                .collect::<Vec<Line>>(),
+        );
+        let block = Block::bordered()
+            .title(instructions)
+            .border_set(border::THICK);
+        Paragraph::new(body_text)
+            .block(block)
             .centered()
             .render(area, buf);
     }
