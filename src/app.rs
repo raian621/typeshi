@@ -6,7 +6,7 @@ use ratatui::{
     layout::Rect,
     symbols::border,
     text::{Line, Text},
-    widgets::{Block, Paragraph, Widget},
+    widgets::{Block, Paragraph, Widget, Wrap},
 };
 
 use std::io;
@@ -51,6 +51,7 @@ impl App {
             }
             KeyCode::Char(c) => self.engine.push_char(c),
             KeyCode::Enter => self.engine.push_char('\n'),
+            KeyCode::Tab => self.engine.push_char('\t'),
             KeyCode::Backspace => self.engine.pop_char(),
             _ => {}
         }
@@ -59,20 +60,25 @@ impl App {
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let instructions = Line::from("Press Ctrl + Q to exit");
+        let instructions = Line::from(" Press Ctrl + Q to exit ");
         let token_diff = self.engine.token_diff();
         let body_text = Text::from(
             token_diff
                 .split("\n")
-                .map(Line::from)
+                .map(|line| Line::from(line.replace("\t", "  ")))
                 .collect::<Vec<Line>>(),
         );
+
+        let wpm = 0;
+        let cpm = 0;
+        let stats = Line::from(format!(" wpm = {wpm}, cpm = {cpm} "));
         let block = Block::bordered()
-            .title(instructions)
+            .title_top(stats.centered())
+            .title_bottom(instructions.centered())
             .border_set(border::THICK);
         Paragraph::new(body_text)
             .block(block)
-            .centered()
+            .wrap(Wrap { trim: true })
             .render(area, buf);
     }
 }
