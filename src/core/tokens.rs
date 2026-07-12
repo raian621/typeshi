@@ -1,9 +1,32 @@
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Token {
+    /// Start index of the token in the original string / text.
     pub start: usize,
+    /// End index of the token in the original string / text.
     pub end: usize,
+    /// Lexeme of the token.
     pub lexeme: Vec<char>,
+    /// What kind of token this is.
     pub kind: TokenKind,
+}
+
+/// A fork-like diff of two tokens. For example the diff of "word" and "world"
+/// would be:
+/// ```
+/// TokenDiff {
+///   common: "wor",
+///   missing: "d",
+///   incorrect: "ld"
+/// }
+/// ```
+#[derive(Debug, PartialEq)]
+pub struct TokenDiff {
+    /// Prefix both token's lexemes have in common.
+    common: String,
+    /// Suffix from the expected lexeme that doesn't match the actual lexeme.
+    missing: String,
+    /// Suffix from the actual lexeme that doesn't match the expected lexeme.
+    incorrect: String,
 }
 
 #[derive(Clone, PartialEq, Debug, Default)]
@@ -11,13 +34,10 @@ pub enum TokenKind {
     // Placeholder token kind / default value.
     #[default]
     Empty,
-
     /// Tab newline, or space.
     Whitespace,
-
     /// Anything that isn't a word or whitespace.
     Operator,
-
     /// A word like 'word' or 'chungus'.
     Word,
 }
@@ -53,6 +73,22 @@ impl Token {
             self.lexeme.pop();
             self.end -= 1;
         }
+    }
+}
+
+impl TokenDiff {
+    pub fn diff(t1: &Token, t2: &Token) -> Self {
+        let size = usize::min(t1.lexeme.len(), t2.lexeme.len());
+        let mut fork_idx = 0;
+        while fork_idx < size && t1.lexeme[fork_idx] == t2.lexeme[fork_idx] {
+            fork_idx += 1;
+        }
+
+        let common = t1.lexeme[..fork_idx].iter().collect();
+        let missing = t1.lexeme[fork_idx..].iter().collect();
+        let incorrect = t2.lexeme[fork_idx..].iter().collect();
+
+        Self { common, missing, incorrect }
     }
 }
 
@@ -270,4 +306,15 @@ mod tests {
         })
     }
 
+    #[test]
+    fn test_token_diff() {
+        let expected_token = Token::new(0, "token".chars().collect(), TokenKind::Word);
+        let actual_token = Token::new(0, "tock".chars().collect(), TokenKind::Word);
+
+        assert_eq!(TokenDiff::diff(&expected_token, &actual_token), TokenDiff {
+            common: "to".into(),
+            missing: "ken".into(),
+            incorrect: "ck".into(),
+        });
+    }
 }
