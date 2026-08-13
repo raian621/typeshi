@@ -1,32 +1,40 @@
 use crate::views::{navigator::Navigator, typing::Typing, view::View};
 use ratatui::{self};
 
-use std::{collections::HashMap, io};
+use std::{cell::RefCell, collections::HashMap, io, rc::Rc};
 
 pub fn run_app() -> io::Result<()> {
-    ratatui::run(|terminal| App::default().run(terminal))
+    ratatui::run(|terminal| App::new().run(terminal))
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct App {
-    should_exit: bool,
-    views: HashMap<String, Box<dyn View>>,
+    _views: HashMap<String, Rc<RefCell<dyn View>>>,
+    default_view: Rc<RefCell<dyn View>>,
+    current_view: Option<Rc<RefCell<dyn View>>>,
 }
 
 impl App {
-    pub fn register_views(&mut self) {
+    pub fn new() -> Self {
         let navigator = Navigator::new(|_| ());
-        self.views
-            .insert("typing".into(), Box::new(Typing::new(navigator)));
+        let default_view: Rc<RefCell<dyn View>> = Rc::new(RefCell::new(Typing::new(navigator)));
+        Self {
+            _views: HashMap::from([("typing".to_string(), default_view.clone())]),
+            default_view,
+            current_view: None,
+        }
     }
 
     pub fn run(&mut self, terminal: &mut ratatui::DefaultTerminal) -> io::Result<()> {
-        self.register_views();
-        while !self.should_exit {
-            let current_view = self.views.get_mut("typing".into()).unwrap();
+        loop {
+            let mut current_view = self
+                .current_view
+                .as_ref()
+                .unwrap_or(&self.default_view)
+                .borrow_mut();
             terminal.draw(|frame| current_view.draw(frame))?;
             if current_view.handle_events()? {
-                self.should_exit = true;
+                break;
             }
         }
         Ok(())
