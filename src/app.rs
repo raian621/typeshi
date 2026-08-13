@@ -1,15 +1,7 @@
-use crate::core::engine::Engine;
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use ratatui::{
-    self,
-    buffer::Buffer,
-    layout::Rect,
-    symbols::border,
-    text::{Line, Text},
-    widgets::{Block, Paragraph, Widget, Wrap},
-};
+use crate::views::{navigator::Navigator, typing::Typing, view::View};
+use ratatui::{self};
 
-use std::io;
+use std::{collections::HashMap, io};
 
 pub fn run_app() -> io::Result<()> {
     ratatui::run(|terminal| App::default().run(terminal))
@@ -18,67 +10,25 @@ pub fn run_app() -> io::Result<()> {
 #[derive(Debug, Default)]
 pub struct App {
     should_exit: bool,
-    engine: Engine,
+    views: HashMap<String, Box<dyn View>>,
 }
 
 impl App {
+    pub fn register_views(&mut self) {
+        let navigator = Navigator::new(|_| ());
+        self.views
+            .insert("typing".into(), Box::new(Typing::new(navigator)));
+    }
+
     pub fn run(&mut self, terminal: &mut ratatui::DefaultTerminal) -> io::Result<()> {
+        self.register_views();
         while !self.should_exit {
-            terminal.draw(|frame| self.draw(frame))?;
-            self.handle_events()?;
-        }
-        Ok(())
-    }
-
-    fn draw(&self, frame: &mut ratatui::Frame) {
-        frame.render_widget(self, frame.area());
-    }
-
-    fn handle_events(&mut self) -> io::Result<()> {
-        match event::read()? {
-            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_key_event(key_event)
-            }
-            _ => {}
-        };
-        Ok(())
-    }
-
-    fn handle_key_event(&mut self, event: KeyEvent) {
-        match event.code {
-            KeyCode::Char('c') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+            let current_view = self.views.get_mut("typing".into()).unwrap();
+            terminal.draw(|frame| current_view.draw(frame))?;
+            if current_view.handle_events()? {
                 self.should_exit = true;
             }
-            KeyCode::Char(c) => self.engine.push_char(c),
-            KeyCode::Enter => self.engine.push_char('\n'),
-            KeyCode::Tab => self.engine.push_char('\t'),
-            KeyCode::Backspace => self.engine.pop_char(),
-            _ => {}
         }
-    }
-}
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let instructions = Line::from(" Press Ctrl + Q to exit ");
-        let token_diff = self.engine.token_diff();
-        let body_text = Text::from(
-            token_diff
-                .split("\n")
-                .map(|line| Line::from(line.replace("\t", "  ")))
-                .collect::<Vec<Line>>(),
-        );
-
-        let wpm = 0;
-        let cpm = 0;
-        let stats = Line::from(format!(" wpm = {wpm}, cpm = {cpm} "));
-        let block = Block::bordered()
-            .title_top(stats.centered())
-            .title_bottom(instructions.centered())
-            .border_set(border::THICK);
-        Paragraph::new(body_text)
-            .block(block)
-            .wrap(Wrap { trim: true })
-            .render(area, buf);
+        Ok(())
     }
 }
