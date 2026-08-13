@@ -46,7 +46,7 @@ impl App {
 
     fn handle_key_event(&mut self, event: KeyEvent) {
         match event.code {
-            KeyCode::Char('q') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+            KeyCode::Char('c') if event.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.should_exit = true;
             }
             KeyCode::Char(c) => self.engine.push_char(c),
