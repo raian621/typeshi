@@ -21,7 +21,7 @@ pub struct Typing {
 }
 
 impl View for Typing {
-    fn draw(&self, frame: &mut ratatui::Frame) {
+    fn draw(&mut self, frame: &mut ratatui::Frame) {
         frame.render_widget(self, frame.area());
     }
 
@@ -67,7 +67,7 @@ impl Typing {
     }
 }
 
-impl Widget for &Typing {
+impl Widget for &mut Typing {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let instructions = Line::from(" Press Ctrl + C to exit ");
         let token_diff = self.engine.token_diff();

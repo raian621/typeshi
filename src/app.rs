@@ -1,7 +1,9 @@
-use crate::views::{navigator::Navigator, typing::Typing, view::View};
+use crate::views::{main_menu::MainMenu, navigator::Navigator, typing::Typing, view::View};
 use ratatui::{self};
 
 use std::{cell::RefCell, collections::HashMap, io, rc::Rc};
+
+type ViewRef = Rc<RefCell<dyn View>>;
 
 pub fn run_app() -> io::Result<()> {
     ratatui::run(|terminal| App::new().run(terminal))
@@ -9,29 +11,55 @@ pub fn run_app() -> io::Result<()> {
 
 #[derive(Debug)]
 pub struct App {
-    _views: HashMap<String, Rc<RefCell<dyn View>>>,
-    default_view: Rc<RefCell<dyn View>>,
-    current_view: Option<Rc<RefCell<dyn View>>>,
+    _views: Rc<RefCell<HashMap<String, ViewRef>>>,
+    default_view: ViewRef,
+    current_view: Rc<RefCell<Option<ViewRef>>>,
 }
 
 impl App {
     pub fn new() -> Self {
-        let navigator = Navigator::new(|_| ());
-        let default_view: Rc<RefCell<dyn View>> = Rc::new(RefCell::new(Typing::new(navigator)));
+        let views: Rc<RefCell<HashMap<String, ViewRef>>> = Rc::new(RefCell::new(HashMap::new()));
+        let current_view: Rc<RefCell<Option<ViewRef>>> = Rc::new(RefCell::new(None));
+
+        let navigator = Navigator::new({
+            let views = Rc::downgrade(&views);
+            let current_view = Rc::downgrade(&current_view);
+            move |view_id: String| {
+                let (Some(views), Some(current_view)) = (views.upgrade(), current_view.upgrade())
+                else {
+                    return;
+                };
+                if let Some(view) = views.borrow().get(&view_id) {
+                    *current_view.borrow_mut() = Some(Rc::clone(view));
+                }
+            }
+        });
+
+        let default_view: ViewRef = Rc::new(RefCell::new(MainMenu::new(navigator.clone())));
+        views
+            .borrow_mut()
+            .insert("menu".to_string(), default_view.clone());
+        views.borrow_mut().insert(
+            "typing".to_string(),
+            Rc::new(RefCell::new(Typing::new(navigator.clone()))),
+        );
+
         Self {
-            _views: HashMap::from([("typing".to_string(), default_view.clone())]),
+            _views: views,
             default_view,
-            current_view: None,
+            current_view,
         }
     }
 
     pub fn run(&mut self, terminal: &mut ratatui::DefaultTerminal) -> io::Result<()> {
         loop {
-            let mut current_view = self
-                .current_view
-                .as_ref()
-                .unwrap_or(&self.default_view)
-                .borrow_mut();
+            let view_ref = {
+                let current = self.current_view.borrow();
+                current
+                    .clone()
+                    .unwrap_or_else(|| Rc::clone(&self.default_view))
+            };
+            let mut current_view = view_ref.borrow_mut();
             terminal.draw(|frame| current_view.draw(frame))?;
             if current_view.handle_events()? {
                 break;

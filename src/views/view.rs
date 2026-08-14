@@ -2,7 +2,7 @@ use std::{fmt::Debug, io};
 
 pub trait View: Debug {
     /// Draw the frame of the UI.
-    fn draw(&self, frame: &mut ratatui::Frame);
+    fn draw(&mut self, frame: &mut ratatui::Frame);
 
     /// Handle events from the terminal.
     ///

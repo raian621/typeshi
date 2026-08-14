@@ -1,7 +1,8 @@
-use std::fmt;
+use std::{fmt, rc::Rc};
 
+#[derive(Clone)]
 pub struct Navigator {
-    _change_view_fn: Box<dyn Fn(String)>,
+    change_view_fn: Rc<dyn Fn(String)>,
 }
 
 impl fmt::Debug for Navigator {
@@ -16,7 +17,11 @@ impl Navigator {
         F: Fn(String) + 'static,
     {
         Self {
-            _change_view_fn: Box::new(change_view_fn),
+            change_view_fn: Rc::new(change_view_fn),
         }
+    }
+
+    pub fn go_to(&self, view_id: &str) {
+        (self.change_view_fn)(view_id.to_string());
     }
 }
