@@ -125,6 +125,17 @@ impl TokenizedText {
         Self { tokens }
     }
 
+    pub fn push_lexeme(&mut self, lexeme: String, kind: TokenKind) {
+        let start_index = if let Some(last_token) = self.tokens.last() {
+            last_token.end + 2 // 2 char lengths, assume 1 whitespace / separator
+        } else {
+            0
+        };
+
+        self.tokens
+            .push(Token::new(start_index, lexeme.chars().collect(), kind))
+    }
+
     pub fn push_token(&mut self, token: Token) {
         self.tokens.push(token);
     }
