@@ -60,9 +60,11 @@ impl Typing {
     }
 
     pub fn new(navigator: Navigator) -> Self {
+        let mut engine = Engine::default();
+        engine.generate_tokens(20);
         Self {
             _navigator: navigator,
-            engine: Engine::default(),
+            engine,
         }
     }
 }
@@ -71,8 +73,12 @@ impl Widget for &mut Typing {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let instructions = Line::from(" Press Ctrl + C to exit ");
         let token_diff = self.engine.token_diff();
+        let token_diff_str = token_diff
+            .iter()
+            .map(|diff| format!("{}{}{}", diff.common, diff.incorrect, diff.missing))
+            .collect::<Vec<String>>().join(" ");
         let body_text = Text::from(
-            token_diff
+            token_diff_str
                 .split("\n")
                 .map(|line| Line::from(line.replace("\t", "  ")))
                 .collect::<Vec<Line>>(),

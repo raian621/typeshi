@@ -19,7 +19,7 @@ pub struct Token {
 ///   incorrect: "ld"
 /// }
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct TokenDiff {
     /// Prefix both token's lexemes have in common.
     pub common: String,
