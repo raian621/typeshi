@@ -5,6 +5,7 @@ use rand::{RngExt, rngs::StdRng};
 use crate::core::generators::traits::Generator;
 
 /// Generates random nonsense words
+#[derive(Debug)]
 pub struct Gibberish {
     min_length: usize,
     max_length: usize,
