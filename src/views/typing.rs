@@ -1,16 +1,17 @@
 use std::io;
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use ratatui::style::Stylize;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
     symbols::border,
-    text::{Line, Text},
+    text::{Line, Span, Text},
     widgets::{Block, Paragraph, Widget, Wrap},
 };
 
 use crate::{
-    core::engine::Engine,
+    core::{engine::Engine, tokens::TokenDiff},
     views::{navigator::Navigator, view::View},
 };
 
@@ -73,16 +74,25 @@ impl Widget for &mut Typing {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let instructions = Line::from(" Press Ctrl + C to exit ");
         let token_diff = self.engine.token_diff();
-        let token_diff_str = token_diff
-            .iter()
-            .map(|diff| format!("{}{}{}", diff.common, diff.incorrect, diff.missing))
-            .collect::<Vec<String>>().join(" ");
-        let body_text = Text::from(
-            token_diff_str
-                .split("\n")
-                .map(|line| Line::from(line.replace("\t", "  ")))
-                .collect::<Vec<Line>>(),
-        );
+        let mut token_display_diff = vec![];
+        token_display_diff.resize(token_diff.len() * 2 - 1, Default::default());
+        for i in 0..token_diff.len() - 1 {
+            token_display_diff[2 * i] = token_diff[i].clone();
+            token_display_diff[2 * i + 1] = TokenDiff::new(" ", "", "");
+        }
+
+        let body_text = Text::from(Line::from(
+            token_display_diff
+                .into_iter()
+                .flat_map(|diff| {
+                    vec![
+                        Span::raw(diff.common),
+                        Span::raw(diff.incorrect).red(),
+                        Span::raw(diff.missing).gray(),
+                    ]
+                })
+                .collect::<Vec<_>>(),
+        ));
 
         let wpm = 0;
         let cpm = 0;
