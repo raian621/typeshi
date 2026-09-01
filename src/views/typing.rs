@@ -1,13 +1,14 @@
 use std::io;
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use ratatui::layout::Constraint;
 use ratatui::style::Stylize;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
     symbols::border,
     text::{Line, Span, Text},
-    widgets::{Block, Paragraph, Widget, Wrap},
+    widgets::{Block, Padding, Paragraph, Widget, Wrap},
 };
 
 use crate::{
@@ -101,9 +102,13 @@ impl Widget for &mut Typing {
             .title_top(stats.centered())
             .title_bottom(instructions.centered())
             .border_set(border::THICK);
+
         Paragraph::new(body_text)
-            .block(block)
+            .block(block.padding(Padding::horizontal(1)))
             .wrap(Wrap { trim: true })
-            .render(area, buf);
+            .render(
+                area.centered(Constraint::Max(80), Constraint::Length(5)),
+                buf,
+            );
     }
 }
