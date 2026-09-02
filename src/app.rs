@@ -1,4 +1,4 @@
-use crate::views::{main_menu::MainMenu, navigator::Navigator, typing::Typing, view::View};
+use crate::{tui::navigator::Navigator, views::{main_menu::MainMenu, typing::Typing, view::View}};
 use ratatui::{self};
 
 use std::{cell::RefCell, collections::HashMap, io, rc::Rc};

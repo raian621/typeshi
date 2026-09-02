@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{List, ListState},
 };
 
-use crate::views::{navigator::Navigator, view::View};
+use crate::{tui::navigator::Navigator, views::view::View};
 
 #[derive(Debug)]
 pub struct MainMenu {

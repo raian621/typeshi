@@ -1,5 +1,6 @@
 mod app;
 mod core;
+pub mod tui;
 mod views;
 
 fn main() {

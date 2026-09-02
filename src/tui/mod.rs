@@ -1,3 +1,1 @@
-pub mod app;
-mod typing;
-mod menu;
+pub mod navigator;

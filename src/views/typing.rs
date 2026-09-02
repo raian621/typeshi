@@ -11,9 +11,10 @@ use ratatui::{
     widgets::{Block, Padding, Paragraph, Widget, Wrap},
 };
 
+use crate::tui::navigator::Navigator;
 use crate::{
     core::{engine::Engine, tokens::TokenDiff},
-    views::{navigator::Navigator, view::View},
+    views::{view::View},
 };
 
 #[derive(Debug)]
