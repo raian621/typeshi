@@ -11,10 +11,11 @@ use ratatui::{
     widgets::{Block, Padding, Paragraph, Widget, Wrap},
 };
 
+use crate::core::tokens::TokenKind;
 use crate::tui::navigator::Navigator;
 use crate::{
     core::{engine::Engine, tokens::TokenDiff},
-    views::{view::View},
+    views::view::View,
 };
 
 #[derive(Debug)]
@@ -80,7 +81,7 @@ impl Widget for &mut Typing {
         token_display_diff.resize(token_diff.len() * 2 - 1, Default::default());
         for i in 0..token_diff.len() - 1 {
             token_display_diff[2 * i] = token_diff[i].clone();
-            token_display_diff[2 * i + 1] = TokenDiff::new(" ", "", "");
+            token_display_diff[2 * i + 1] = TokenDiff::new(" ", "", "", TokenKind::Whitespace);
         }
 
         let body_text = Text::from(Line::from(

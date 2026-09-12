@@ -37,18 +37,15 @@ impl Engine {
             .collect();
         token_diffs.resize(generated_text_tokens.len(), Default::default());
         for i in 0..typed_text_tokens.len().min(generated_text_tokens.len()) {
-            token_diffs[i] =
-                TokenDiff::diff(&generated_text_tokens[i], &typed_text_tokens[i]);
+            token_diffs[i] = TokenDiff::diff(&generated_text_tokens[i], &typed_text_tokens[i]);
         }
         for i in typed_text_tokens.len()..generated_text_tokens.len() {
             token_diffs[i] = TokenDiff::new(
                 "",
                 /* missing= */
-                generated_text_tokens[i]
-                    .lexeme
-                    .iter()
-                    .collect::<String>(),
+                generated_text_tokens[i].lexeme.iter().collect::<String>(),
                 "",
+                TokenKind::Word,
             );
         }
 
@@ -87,16 +84,16 @@ mod tests {
         assert_eq!(
             engine.token_diff(),
             vec![
-                TokenDiff::new("Lorem", "", ""),
-                TokenDiff::new("ipsum", "", "")
+                TokenDiff::new("Lorem", "", "", TokenKind::Word),
+                TokenDiff::new("ipsum", "", "", TokenKind::Word)
             ]
         );
         engine.pop_char();
         assert_eq!(
             engine.token_diff(),
             vec![
-                TokenDiff::new("Lorem", "", ""),
-                TokenDiff::new("ipsu", "m", "")
+                TokenDiff::new("Lorem", "", "", TokenKind::Word),
+                TokenDiff::new("ipsu", "m", "", TokenKind::Word)
             ]
         );
     }

@@ -27,6 +27,8 @@ pub struct TokenDiff {
     pub missing: String,
     /// Suffix from the actual lexeme that doesn't match the expected lexeme.
     pub incorrect: String,
+    /// The kind of token being diffed
+    pub token_kind: TokenKind,
 }
 
 #[derive(Clone, PartialEq, Debug, Default)]
@@ -81,11 +83,13 @@ impl TokenDiff {
         common: impl Into<String>,
         missing: impl Into<String>,
         incorrect: impl Into<String>,
+        token_kind: TokenKind,
     ) -> Self {
         Self {
             common: common.into(),
             missing: missing.into(),
             incorrect: incorrect.into(),
+            token_kind,
         }
     }
 
@@ -104,6 +108,7 @@ impl TokenDiff {
             common,
             missing,
             incorrect,
+            token_kind: t1.kind.clone(),
         }
     }
 }
@@ -347,6 +352,7 @@ mod tests {
                 common: "to".into(),
                 missing: "ken".into(),
                 incorrect: "ck".into(),
+                token_kind: TokenKind::Word
             }
         );
     }
