@@ -14,7 +14,7 @@ use ratatui::{
 use crate::core::tokens::TokenKind;
 use crate::tui::navigator::Navigator;
 use crate::{
-    core::{engine::Engine, tokens::TokenDiff},
+    core::{engine::Engine, tokens::diff::TokenDiff},
     views::view::View,
 };
 

@@ -1,4 +1,4 @@
-use crate::core::tokens::TokenDiff;
+use crate::core::tokens::diff::TokenDiff;
 
 pub fn get_wpm(token_diffs: &[TokenDiff], delta_seconds: u64) -> f32 {
     let correct_words = token_diffs.iter().fold(0_usize, |count, diff| {

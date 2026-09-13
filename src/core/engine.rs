@@ -1,6 +1,6 @@
 use crate::core::{
     generators::{gibberish::Gibberish, traits::Generator},
-    tokens::{Token, TokenDiff, TokenKind, TokenizedText},
+    tokens::{Token, TokenKind, TokenizedText, diff::TokenDiff},
 };
 
 #[derive(Debug)]
